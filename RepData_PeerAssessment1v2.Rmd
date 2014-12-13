@@ -1,0 +1,42 @@
+---
+title: "project1_reproducible_research"
+output: html_document
+---
+
+This is the first project for coursera's Reproducible Research Class
+
+The first step is to download the data
+
+```{r}
+unzip("activity.zip")
+activity <- read.csv("activity.csv")
+names(activity)
+
+```
+We are now interested in visualizing the number of steps taken every day
+```{r}
+library(plyr)
+stepsPerDay <- ddply(activity, c("date"), summarize, totsteps=sum(steps, na.rm=TRUE))
+hist(stepsPerDay$totsteps)
+mean(stepsPerDay$totsteps)
+median(stepsPerDay$totsteps)
+```
+We will now make a plot for the time series plot to track activity throughout the day
+
+```{r}
+avgStepsPerInterval <- ddply(activity, c("interval"), summarize, totsteps=sum(steps, na.rm=TRUE))
+intervalCounts <- count(activity$interval)
+names(intervalCounts)
+avgStepsPerInterval$intervalFreq <- intervalCounts$freq
+avgStepsPerInterval$avgsteps <- with(avgStepsPerInterval, totsteps/intervalFreq)
+head(avgStepsPerInterval)
+plot(avgStepsPerInterval$interval, avgStepsPerInterval$avgsteps, type="l")
+avgStepsPerInterval[avgStepsPerInterval$avgsteps == max(avgStepsPerInterval$avgsteps),]
+```
+Interval 835 has the highest number of average steps
+
+Now we will count the NA's and replace them with appropriate data
+```{r}
+missingValues <- activity[activity$steps == NA,]
+nrow(missingValues)
+```
